@@ -49,8 +49,11 @@ void testSingletonWithCallOnceImpl()
 }
 
 
+#include "testThreadPool.h"
+
 int main(int, char**){
-    testForkWhenMultiThreads();
+    testThreadPool();
+    //testForkWhenMultiThreads();
     // testSingletonWithLockImpl();
     // testSingletonWithCallOnceImpl();
     std::cout << "Hello, from classic_examples_impl!\n";
