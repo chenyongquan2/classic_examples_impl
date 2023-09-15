@@ -8,12 +8,6 @@
 class SingletonWithLockImpl
 {
 public:
-    SingletonWithLockImpl()
-    {
-        times_++;
-        assert(times_==1);
-    }
-
     static SingletonWithLockImpl* GetInstance()
     {
         //double check
@@ -27,6 +21,13 @@ public:
         }
 
         return instance_;
+    }
+
+private:
+    SingletonWithLockImpl()
+    {
+        times_++;
+        assert(times_==1);
     }
 
 private:
