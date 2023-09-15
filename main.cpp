@@ -1,8 +1,10 @@
 #include <iostream>
-#include "SingletonWithLockImpl.h"
-#include "SingletonWithCallOnceImpl.h"
+#include <mutex>
 #include <thread>
 
+#include "SingletonWithLockImpl.h"
+#include "SingletonWithCallOnceImpl.h"
+#include "testForkWhenMultiThreads.h"
 
 void testSingletonWithLockImpl()
 {
@@ -46,9 +48,10 @@ void testSingletonWithCallOnceImpl()
 
 }
 
-int main(int, char**){
-    testSingletonWithLockImpl();
 
-    testSingletonWithCallOnceImpl();
+int main(int, char**){
+    testForkWhenMultiThreads();
+    // testSingletonWithLockImpl();
+    // testSingletonWithCallOnceImpl();
     std::cout << "Hello, from classic_examples_impl!\n";
 }
