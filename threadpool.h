@@ -29,6 +29,8 @@ private:
     //std::atomic<bool> run_ = true;//某些编译器会编译不通过
     std::atomic<int> idleThreadNum_ ;//空闲线程数量
 
+    std::atomic<int> finishThreadNum;//结束了任务的线程
+
 #ifdef THREADPOOL_AUTO_GROW
     std::mutex autoGrowMutex_;
 #endif // THREADPOOL_AUTO_GROW
@@ -38,6 +40,7 @@ public:
         :run_(true)
         ,idleThreadNum_(0)
         ,initSize_(size)
+        ,finishThreadNum(0)
     {
         addAndStartThread(size);
     }
@@ -51,10 +54,18 @@ public:
             if(t.joinable())
                 t.join();
         }
+
+        std::cout << "initThreadSize=" << initSize_
+        << ",allThreadSize="  << allThreadNum() 
+        << ",allRunningThreadSize="  << allRunningThreadNum() 
+        << ",idelThreadsize= "<< idleThreadNum() 
+        << ",finishThreadSize=" << finishThreadNum.load()
+        << std::endl;
     }
 
     int idleThreadNum() const {return idleThreadNum_.load();}
     int allThreadNum() const {return threads_.size();}
+    int allRunningThreadNum() const {return threads_.size() - finishThreadNum.load();}
 
 #ifndef THREADPOOL_AUTO_GROW
 //当不允许自动增长，此方法也没必要暴露出去。
@@ -65,6 +76,7 @@ private:
     {
 #ifdef THREADPOOL_AUTO_GROW
         //当可以增加线程时，需要在增加线程时进行加锁，防止多个线程同时来扩展线程池
+        //Todo:如果这里加了线程增长锁，后续无需对threads_再进行加锁或者访问大小进行原子操作。
         std::unique_lock<std::mutex> lockAutoGrow(autoGrowMutex_);
 #endif // THREADPOOL_AUTO_GROW
 
@@ -86,8 +98,9 @@ private:
 
                         if(!run_ && tasksQueue_.empty())
                         {
+                            finishThreadNum.fetch_add(1);
                             //当mrun_但是tasksQueue_不为空，应该要把剩余的任务都给消费完，才退出线程
-                            return;
+                            return;//退出线程
                         }
                         //这里上面已经加锁保证了。
                         idleThreadNum_--;//atomic?
@@ -97,6 +110,20 @@ private:
 
                     //执行task
                     curTask();
+
+                    //判断线程是否过剩。
+#ifdef THREADPOOL_AUTO_GROW
+                    //由于idleThreadNum_会被多个线程所访问，所以改造为原子操作。
+                    if(idleThreadNum_.load() > 0 && threads_.size() > initSize_)//idleThreadNum_ > 0
+                    {
+                        //是否可以释放空闲的线程线程 处理方式：结束线程 return
+                        finishThreadNum.fetch_add(1);
+                        std::cout << "[free the idle thread] now runing threadSize:" << allRunningThreadNum() <<std::endl;
+                        return;
+                    }
+#endif // THREADPOOL_AUTO_GROW
+
+
                     idleThreadNum_.fetch_add(1);
                     //idleThreadNum_++;//atomic?
 

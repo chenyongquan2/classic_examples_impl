@@ -7,7 +7,7 @@ void fun1(int ms)
 {
 	// std::cout << "[fun1] tid="  << std::this_thread::get_id() << std::endl;
 	if (ms>0) {
-        std::cout << " [fun1] sleep tid="  << std::this_thread::get_id() << std::endl;
+        //std::cout << " [fun1] sleep tid="  << std::this_thread::get_id() << std::endl;
 		std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 	}
 }
@@ -36,7 +36,9 @@ void printThreadInfo(const threadpool& executor)
 {
     std::cout << "[main thread] tid = " << std::this_thread::get_id() 
         << ",idelThreadsize = "<< executor.idleThreadNum() 
-        << ",allThreadSize="  << executor.allThreadNum() << std::endl;
+        << ",allThreadSize="  << executor.allThreadNum() 
+        << ",allRunningThreadSize="  << executor.allRunningThreadNum()
+        << std::endl;
 }
 
 void testThreadPool()
