@@ -1,5 +1,6 @@
 #include <iostream>
 #include <mutex>
+#include <string>
 #include <thread>
 
 #include "SingletonWithLockImpl.h"
@@ -48,11 +49,48 @@ void testSingletonWithCallOnceImpl()
 
 }
 
+std::string addStrings(const std::string& num1, const std::string& num2)
+{
+    std::string result;
+    int carry=0;
+    int i= num1.size()-1;
+    int j=num2.size()-1;
+    while(i>=0||j>=0||carry>0)
+    {
+        int d1= i>=0?num1[i--]-'0':0;
+        int d2=j>=0?num2[j--]-'0':0;
+        int sum=d1+d2+carry;
+        carry=sum/10;
+        int curDigit = sum%10;
+        result.push_back(curDigit+'0');
+    }
+
+    std::reverse(result.begin(),result.end());
+    return result;
+}
+
+void testAddString()
+{
+    std::string num1 = "123456789";  
+    std::string num2 = "987654321";  
+    std::string sum = addStrings(num1, num2);  
+    std::cout << "Sum: " << sum << std::endl;  
+}
+
+#include <QApplication>  
+#include <QLabel>  
 
 #include "testThreadPool.h"
 
-int main(int, char**){
-    testThreadPool();
+int main(int argc, char** argv){
+    testAddString();
+    // QApplication app(argc, argv);  
+
+    // QLabel label("Hello, World!");  
+    // label.show();
+
+    // return app.exec();  
+    //testThreadPool();
     //testForkWhenMultiThreads();
     // testSingletonWithLockImpl();
     // testSingletonWithCallOnceImpl();
